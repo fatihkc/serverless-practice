@@ -9,8 +9,8 @@ RUN useradd -m -u 1000 appuser && \
 WORKDIR /app
 
 # Install curl for health checks
+# hadolint ignore=DL3008
 RUN apt-get update && \
-    # hadolint ignore=DL3008
     apt-get install -y --no-install-recommends curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
