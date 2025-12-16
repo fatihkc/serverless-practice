@@ -260,8 +260,9 @@ This project uses **separate GitHub Actions workflows** for independent componen
 **Triggers:** Changes to `lambda/` or manual dispatch
 
 **Jobs:**
-1. **Deploy Lambda** - Serverless Framework deployment
-2. **Test Lambda** - Validate DELETE endpoint via ALB
+1. **Security Checks** - NPM audit, Python CVE scanning, SAST, IAM validation
+2. **Deploy Lambda** - Serverless Framework deployment
+3. **Test Lambda** - Validate DELETE endpoint via application
 
 ## Security
 
@@ -290,3 +291,5 @@ This project uses **separate GitHub Actions workflows** for independent componen
 - Security group restrictions
 - CloudWatch logging enabled
 - Point-in-time recovery for DynamoDB
+- Pre-commit hooks for code quality and Terraform validation
+- Automated security scanning in CI/CD pipeline

@@ -1,6 +1,6 @@
 # Coding Guidelines
 
-USE CONTEXT7
+USE CONTEXT7 for library documentation lookups
 
 ## Python Development
 - Use Python 3.11+ with type hints for all function signatures
@@ -17,12 +17,39 @@ USE CONTEXT7
 - Use jsonify() for all JSON responses
 - Validate request data with request.get_json() and manual checks
 - Add proper logging with Flask's logger or Python's logging module
+- Consider FastAPI for new services (automatic OpenAPI, better validation)
+
+## API Design
+- Use RESTful conventions (GET, POST, DELETE with proper status codes)
+- Return consistent error format across all endpoints
+- Include timestamps in all data records (created_at, updated_at)
+- Use proper HTTP status codes (200, 201, 400, 404, 500)
+- Validate request payload size (respect DynamoDB 400KB limit)
+- Version APIs for breaking changes
+
+## AWS Lambda & Serverless
+- Keep functions small and focused (single responsibility)
+- Cold start optimization: minimize dependencies
+- Use environment variables for configuration
+- Handler timeout: Match Lambda timeout to actual needs
+- Memory: Start with 256MB, monitor and adjust
+- Always handle ALB event format for direct ALB integration
+- Include proper error responses (statusCode, body, headers)
 
 ## AWS & Infrastructure
 - boto3: Always handle ClientError exceptions
 - DynamoDB: Use resource interface for simpler operations
 - CloudWatch: Log structured JSON for better querying
 - Environment variables: Use for all configuration (no hardcoded values)
+
+## DynamoDB Best Practices
+- Use UUID for partition keys to ensure even distribution
+- Enable point-in-time recovery for all tables
+- Use on-demand billing for unpredictable workloads
+- Implement proper error handling for throttling
+- Keep item size under 400KB
+- Add created_at timestamp to all items
+- Use projection expressions to minimize data transfer
 
 ## Terraform
 - Use consistent naming: kebab-case for resource names, snake_case for variables
@@ -45,6 +72,32 @@ USE CONTEXT7
 - Use AWS Secrets Manager or Parameter Store for sensitive data
 - Restrict security group rules to minimum required access
 - Enable encryption at rest for all data stores
+- Run security scans in CI/CD (npm audit, safety, bandit)
+- Respond to security findings within 24 hours
+- Document all security exceptions
+
+## CI/CD & GitHub Actions
+- Separate workflows for each deployable component
+- Non-blocking security checks (warnings, not failures)
+- Always run security scans before deployment
+- Use caching for dependencies (npm, pip, docker layers)
+- Artifact retention: 7 days for security reports
+- Include integration tests after deployment
+
+## Pre-commit Hooks
+- Run all hooks before committing
+- Fix formatting issues automatically (terraform fmt, trailing whitespace)
+- Never commit with --no-verify unless emergency
+- Keep hook versions up to date
+- Document required tools (tflint, terraform-docs)
+
+## Monitoring & Observability
+- Log all errors with sufficient context for debugging
+- Use structured logging (JSON) for better querying
+- Include request IDs in all log entries
+- Monitor key metrics: latency, error rate, throughput
+- Set up CloudWatch alarms for critical thresholds
+- Document what "healthy" looks like for each service
 
 ## Error Handling & Logging
 - Always include try-except blocks for external calls
@@ -63,6 +116,11 @@ USE CONTEXT7
 ## Git & Version Control
 - Write clear, concise commit messages
 - Use conventional commits format: type(scope): message
+  - feat: New feature
+  - fix: Bug fix
+  - security: Security fix
+  - chore: Maintenance
+  - docs: Documentation
 - Keep commits atomic and focused
 - Never commit sensitive data or credentials
 
