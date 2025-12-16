@@ -52,16 +52,16 @@ def list_items():
     try:
         response = table.scan()
         items = response.get('Items', [])
-        
+
         # Handle pagination
         while 'LastEvaluatedKey' in response:
             response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
             items.extend(response.get('Items', []))
-        
+
         logger.info(f"Retrieved {len(items)} items")
-        
+
         return jsonify(items), 200
-        
+
     except ClientError as e:
         logger.error(f"Error listing items: {e.response['Error']['Message']}")
         return jsonify({"error": "Failed to retrieve items from database"}), 500
@@ -81,13 +81,13 @@ def put_item():
     try:
         # Get JSON data from request
         data = request.get_json()
-        
+
         if not data:
             return jsonify({"error": "No data provided"}), 400
-        
+
         # Generate UUID for the item
         item_id = str(uuid.uuid4())
-        
+
         # Store in DynamoDB
         table.put_item(
             Item={
@@ -95,11 +95,11 @@ def put_item():
                 'data': data
             }
         )
-        
+
         logger.info(f"Created item with id: {item_id}")
-        
+
         return jsonify({"id": item_id}), 201
-        
+
     except ClientError as e:
         logger.error(f"Error creating item: {e.response['Error']['Message']}")
         return jsonify({"error": "Failed to create item in database"}), 500
@@ -122,15 +122,15 @@ def get_item(key):
     try:
         response = table.get_item(Key={'id': key})
         item = response.get('Item')
-        
+
         if not item:
             logger.warning(f"Item not found with id: {key}")
             return jsonify({"error": f"Item with id '{key}' not found"}), 404
-        
+
         logger.info(f"Retrieved item with id: {key}")
-        
+
         return jsonify(item), 200
-        
+
     except ClientError as e:
         logger.error(f"Error retrieving item {key}: {e.response['Error']['Message']}")
         return jsonify({"error": "Failed to retrieve item from database"}), 500
