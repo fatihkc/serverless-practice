@@ -10,7 +10,9 @@ WORKDIR /app
 
 # Install curl for health checks
 RUN apt-get update && \
+    # hadolint ignore=DL3008
     apt-get install -y --no-install-recommends curl && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install dependencies

@@ -9,8 +9,7 @@ import boto3
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -19,15 +18,14 @@ app = Flask(__name__)
 
 # Initialize DynamoDB client
 dynamodb = boto3.resource(
-    'dynamodb',
-    region_name=os.environ.get('AWS_REGION', 'us-east-1')
+    "dynamodb", region_name=os.environ.get("AWS_REGION", "us-east-1")
 )
-table = dynamodb.Table(os.environ.get('DYNAMODB_TABLE_NAME', 'picus-data'))
+table = dynamodb.Table(os.environ.get("DYNAMODB_TABLE_NAME", "picus-data"))
 
 logger.info(f"DynamoDB client initialized for table: {table.table_name}")
 
 
-@app.route('/health', methods=['GET'])
+@app.route("/health", methods=["GET"])
 def health_check():
     """
     Health check endpoint for ALB health checks.
@@ -35,13 +33,10 @@ def health_check():
     Returns:
         JSON: Status of the service
     """
-    return jsonify({
-        "status": "healthy",
-        "service": "picus-api"
-    })
+    return jsonify({"status": "healthy", "service": "picus-api"})
 
 
-@app.route('/picus/list', methods=['GET'])
+@app.route("/picus/list", methods=["GET"])
 def list_items():
     """
     List all items from DynamoDB table.
@@ -51,12 +46,12 @@ def list_items():
     """
     try:
         response = table.scan()
-        items = response.get('Items', [])
+        items = response.get("Items", [])
 
         # Handle pagination
-        while 'LastEvaluatedKey' in response:
-            response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
-            items.extend(response.get('Items', []))
+        while "LastEvaluatedKey" in response:
+            response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
+            items.extend(response.get("Items", []))
 
         logger.info(f"Retrieved {len(items)} items")
 
@@ -70,7 +65,7 @@ def list_items():
         return jsonify({"error": "Internal server error"}), 500
 
 
-@app.route('/picus/put', methods=['POST'])
+@app.route("/picus/put", methods=["POST"])
 def put_item():
     """
     Create a new item in DynamoDB table.
@@ -89,12 +84,7 @@ def put_item():
         item_id = str(uuid.uuid4())
 
         # Store in DynamoDB
-        table.put_item(
-            Item={
-                'id': item_id,
-                'data': data
-            }
-        )
+        table.put_item(Item={"id": item_id, "data": data})
 
         logger.info(f"Created item with id: {item_id}")
 
@@ -108,7 +98,7 @@ def put_item():
         return jsonify({"error": "Internal server error"}), 500
 
 
-@app.route('/picus/get/<key>', methods=['GET'])
+@app.route("/picus/get/<key>", methods=["GET"])
 def get_item(key):
     """
     Retrieve a specific item from DynamoDB by ID.
@@ -120,8 +110,8 @@ def get_item(key):
         JSON: Item data with ID
     """
     try:
-        response = table.get_item(Key={'id': key})
-        item = response.get('Item')
+        response = table.get_item(Key={"id": key})
+        item = response.get("Item")
 
         if not item:
             logger.warning(f"Item not found with id: {key}")
