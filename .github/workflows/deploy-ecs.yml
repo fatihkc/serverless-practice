@@ -20,6 +20,10 @@ env:
   CONTAINER_NAME: picus-container
   APP_URL: https://app.fatihkoc.net
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   test:
     name: Run Tests and Linting
