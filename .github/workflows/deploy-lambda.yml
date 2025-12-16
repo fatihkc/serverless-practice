@@ -88,9 +88,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Test Lambda via ALB
+      - name: Test Lambda Function via Application
         run: |
-          echo "Testing Lambda DELETE endpoint via ALB..."
+          echo "Testing Lambda DELETE endpoint via application domain..."
 
           # First create a test item
           echo "Creating test item..."
