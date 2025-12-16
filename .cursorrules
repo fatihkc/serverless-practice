@@ -1,0 +1,79 @@
+# Coding Guidelines
+
+USE CONTEXT7
+
+## Python Development
+- Use Python 3.11+ with type hints for all function signatures
+- Use Flask for REST APIs with proper request validation and error handling
+- Use boto3 for all AWS SDK operations
+- Follow PEP 8 style guide strictly
+- Maximum line length: 100 characters
+- Use async/await for I/O operations where possible
+- Always include docstrings for functions and classes (Google style)
+
+## Flask Specific
+- Use Flask blueprints for logical route organization
+- Implement proper error handling with abort() and custom error handlers
+- Use jsonify() for all JSON responses
+- Validate request data with request.get_json() and manual checks
+- Add proper logging with Flask's logger or Python's logging module
+
+## AWS & Infrastructure
+- boto3: Always handle ClientError exceptions
+- DynamoDB: Use resource interface for simpler operations
+- CloudWatch: Log structured JSON for better querying
+- Environment variables: Use for all configuration (no hardcoded values)
+
+## Terraform
+- Use consistent naming: kebab-case for resource names, snake_case for variables
+- Always add descriptions to variables and outputs
+- Use data sources to reference existing resources
+- Tag all resources with environment, project, and managed-by tags
+- Separate resources into logical files (networking, compute, storage)
+- Use variables for all configurable values
+
+## Docker
+- Use multi-stage builds to minimize image size
+- Run as non-root user when possible
+- Use specific base image versions (no 'latest' tag)
+- Minimize layers by combining RUN commands
+- Add .dockerignore to exclude unnecessary files
+
+## IAM & Security
+- Follow principle of least privilege for all IAM roles
+- Never commit secrets or credentials
+- Use AWS Secrets Manager or Parameter Store for sensitive data
+- Restrict security group rules to minimum required access
+- Enable encryption at rest for all data stores
+
+## Error Handling & Logging
+- Always include try-except blocks for external calls
+- Log errors with context (request ID, user ID, etc.)
+- Use appropriate log levels (DEBUG, INFO, WARNING, ERROR)
+- Return meaningful error messages to clients
+- Never expose internal errors to API responses
+
+## Testing
+- Write unit tests for all business logic
+- Use pytest as test framework
+- Mock AWS services with moto library
+- Aim for >80% code coverage
+- Test both success and error cases
+
+## Git & Version Control
+- Write clear, concise commit messages
+- Use conventional commits format: type(scope): message
+- Keep commits atomic and focused
+- Never commit sensitive data or credentials
+
+## Code Quality
+- Use type hints throughout
+- Avoid deeply nested code (max 3 levels)
+- Keep functions small and single-purpose
+- Use meaningful variable names (no single letters except in comprehensions)
+- Add comments for complex logic only
+- Prefer readability over cleverness
+
+# Documentation Guidelines
+
+- DO NOT USE EMOJIS

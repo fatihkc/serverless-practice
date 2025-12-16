@@ -1,0 +1,95 @@
+service: picus
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 256
+  timeout: 30
+  
+  environment:
+    DYNAMODB_TABLE_NAME: ${self:custom.dynamodbTableName}
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:DeleteItem
+            - dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.dynamodbTableName}
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource:
+            - arn:aws:logs:${self:provider.region}:*:log-group:/aws/lambda/*
+
+  tags:
+    Project: Picus
+    ManagedBy: Serverless Framework
+    Environment: ${self:provider.stage}
+
+custom:
+  dynamodbTableName: picus-data
+  pythonRequirements:
+    dockerizePip: non-linux
+
+functions:
+  delete:
+    handler: handler.delete_item
+    name: ${self:service}-${self:provider.stage}-delete
+    description: Delete item from DynamoDB by ID
+    events:
+      # Note: ALB integration will be configured via Terraform
+      # This is a placeholder for testing the function independently
+      - httpApi:
+          path: /picus/{key}
+          method: DELETE
+    
+    # VPC configuration if needed (uncomment and configure)
+    # vpc:
+    #   securityGroupIds:
+    #     - sg-xxxxxxxxx
+    #   subnetIds:
+    #     - subnet-xxxxxxxxx
+    #     - subnet-yyyyyyyyy
+
+plugins:
+  - serverless-python-requirements
+
+# Package configuration
+package:
+  individually: true
+  patterns:
+    - '!node_modules/**'
+    - '!.venv/**'
+    - '!venv/**'
+    - '!__pycache__/**'
+    - '!.pytest_cache/**'
+    - '!*.pyc'
+    - 'handler.py'
+
+# CloudFormation outputs
+resources:
+  Outputs:
+    DeleteLambdaFunctionArn:
+      Description: ARN of the DELETE Lambda function
+      Value:
+        Fn::GetAtt:
+          - DeleteLambdaFunction
+          - Arn
+      Export:
+        Name: ${self:service}-${self:provider.stage}-delete-function-arn
+    
+    DeleteLambdaFunctionName:
+      Description: Name of the DELETE Lambda function
+      Value:
+        Ref: DeleteLambdaFunction
+      Export:
+        Name: ${self:service}-${self:provider.stage}-delete-function-name

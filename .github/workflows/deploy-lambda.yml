@@ -1,0 +1,133 @@
+name: Deploy Lambda Function
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lambda/**'
+      - '.github/workflows/deploy-lambda.yml'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  FUNCTION_NAME: picus-dev-delete
+  APP_URL: https://app.fatihkoc.net
+
+jobs:
+  deploy-lambda:
+    name: Deploy Lambda with Serverless Framework
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: lambda/package.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install Serverless Framework
+        run: |
+          cd lambda
+          npm ci
+
+      - name: Deploy Lambda with Serverless
+        run: |
+          cd lambda
+          npx serverless deploy --stage dev --region ${{ env.AWS_REGION }} --verbose
+
+      - name: Get Lambda Function Details
+        id: lambda-details
+        run: |
+          FUNCTION_ARN=$(aws lambda get-function \
+            --function-name ${{ env.FUNCTION_NAME }} \
+            --query 'Configuration.FunctionArn' \
+            --output text)
+          
+          FUNCTION_VERSION=$(aws lambda get-function \
+            --function-name ${{ env.FUNCTION_NAME }} \
+            --query 'Configuration.Version' \
+            --output text)
+          
+          echo "function_arn=$FUNCTION_ARN" >> $GITHUB_OUTPUT
+          echo "function_version=$FUNCTION_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "[SUCCESS] Lambda Function deployed successfully!"
+          echo "Function ARN: $FUNCTION_ARN"
+          echo "Function Version: $FUNCTION_VERSION"
+
+  test-lambda:
+    name: Test Lambda Function
+    runs-on: ubuntu-latest
+    needs: deploy-lambda
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Test Lambda via ALB
+        run: |
+          echo "Testing Lambda DELETE endpoint via ALB..."
+          
+          # First create a test item
+          echo "Creating test item..."
+          ITEM_ID=$(curl -s -X POST ${{ env.APP_URL }}/picus/put \
+            -H "Content-Type: application/json" \
+            -d '{"name": "Lambda Test Item", "timestamp": "'$(date +%s)'"}' \
+            | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+          
+          if [ -z "$ITEM_ID" ]; then
+            echo "[FAIL] Failed to create test item"
+            exit 1
+          fi
+          
+          echo "Created test item with ID: $ITEM_ID"
+          
+          # Wait a moment
+          sleep 2
+          
+          # Test DELETE via Lambda
+          echo "Testing DELETE /picus/$ITEM_ID..."
+          DELETE_RESPONSE=$(curl -s -X DELETE ${{ env.APP_URL }}/picus/$ITEM_ID)
+          
+          echo "Delete response: $DELETE_RESPONSE"
+          
+          # Verify item was deleted
+          echo "Verifying item was deleted..."
+          GET_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.APP_URL }}/picus/get/$ITEM_ID)
+          
+          if [ "$GET_RESPONSE" = "404" ]; then
+            echo "[PASS] Lambda DELETE test passed! Item successfully deleted."
+          else
+            echo "[WARN] Unexpected response: $GET_RESPONSE"
+          fi
+
+      - name: Check Lambda Logs
+        run: |
+          echo "Fetching recent Lambda logs..."
+          aws logs tail /aws/lambda/${{ env.FUNCTION_NAME }} \
+            --since 5m \
+            --format short || echo "No recent logs found"

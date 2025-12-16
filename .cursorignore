@@ -1,0 +1,36 @@
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate*
+terraform/.terraform.lock.hcl
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+ENV/
+
+# Node modules
+node_modules/
+
+# Serverless
+.serverless/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Logs
+*.log
+logs/
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# OS files
+.DS_Store
+
