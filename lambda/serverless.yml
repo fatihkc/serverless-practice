@@ -9,6 +9,7 @@ provider:
   stage: ${opt:stage, 'dev'}
   memorySize: 256
   timeout: 30
+  versionFunctions: true
 
   environment:
     DYNAMODB_TABLE_NAME: ${self:custom.dynamodbTableName}
@@ -40,11 +41,21 @@ custom:
   pythonRequirements:
     dockerizePip: non-linux
 
+  # Zero-downtime deployment configuration
+  # Canary deployment: 10% traffic for 2 minutes, then 90%
+  # Total deployment time: ~2 minutes with automatic rollback on errors
+  deploymentSettings:
+    type: Canary10Percent2Minutes
+    alias: live
+
 functions:
   delete:
     handler: handler.delete_item
     name: ${self:service}-${self:provider.stage}-delete
     description: Delete item from DynamoDB by ID
+    deploymentSettings:
+      type: Canary10Percent2Minutes
+      alias: live
     events:
       # Note: ALB integration will be configured via Terraform
       # This is a placeholder for testing the function independently
@@ -62,6 +73,7 @@ functions:
 
 plugins:
   - serverless-python-requirements
+  - serverless-plugin-canary-deployments
 
 # Package configuration
 package:

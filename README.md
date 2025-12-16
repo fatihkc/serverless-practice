@@ -174,12 +174,19 @@ curl -I http://app.fatihkoc.net/health
 
 ### Zero-Downtime Deployment
 
-The application achieves zero-downtime through:
+**ECS Fargate:**
 1. **Minimum Healthy Percent**: 100% (keeps all tasks running)
 2. **Maximum Percent**: 200% (starts new tasks before stopping old)
 3. **Health Checks**: ALB only routes to healthy tasks
 4. **Deployment Circuit Breaker**: Auto-rollback on failures
 5. **Rolling Updates**: Gradual task replacement
+
+**Lambda Function:**
+1. **Versioning**: Each deployment creates an immutable version
+2. **Alias**: "live" alias routes traffic with gradual shift
+3. **Canary Deployment**: 10% traffic for 2 minutes, then 90% (2 min total)
+4. **Auto-Rollback**: CloudWatch monitors errors and reverts automatically
+5. **See**: `lambda/DEPLOYMENT.md` for detailed deployment guide
 
 ## Project Structure
 
