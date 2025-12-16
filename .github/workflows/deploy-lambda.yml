@@ -157,8 +157,8 @@ jobs:
         run: |
           cd lambda
           npx serverless deploy --stage dev --region ${{ env.AWS_REGION }} --verbose
-          echo "Deployment uses canary strategy: 10% traffic for 2 minutes, then 90%"
-          echo "Full deployment completes in ~2 minutes with automatic rollback on errors"
+          echo "Deployment uses linear strategy: 10% traffic shift every 1 minute"
+          echo "Full deployment completes in ~10 minutes with automatic rollback on errors"
 
       - name: Get Lambda Function Details
         id: lambda-details

@@ -184,9 +184,9 @@ curl -I http://app.fatihkoc.net/health
 **Lambda Function:**
 1. **Versioning**: Each deployment creates an immutable version
 2. **Alias**: "live" alias routes traffic with gradual shift
-3. **Canary Deployment**: 10% traffic for 2 minutes, then 90% (2 min total)
+3. **Linear Deployment**: 10% traffic shift every 1 minute (10 min total)
 4. **Auto-Rollback**: CloudWatch monitors errors and reverts automatically
-5. **See**: `lambda/DEPLOYMENT.md` for detailed deployment guide
+5. **Continuous Monitoring**: Traffic shifts gradually with error detection
 
 ## Project Structure
 

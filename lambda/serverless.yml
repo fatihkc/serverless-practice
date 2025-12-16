@@ -42,10 +42,10 @@ custom:
     dockerizePip: non-linux
 
   # Zero-downtime deployment configuration
-  # Canary deployment: 10% traffic for 2 minutes, then 90%
-  # Total deployment time: ~2 minutes with automatic rollback on errors
+  # Linear deployment: 10% traffic shift every 1 minute
+  # Total deployment time: ~10 minutes with automatic rollback on errors
   deploymentSettings:
-    type: Canary10Percent2Minutes
+    type: Linear10PercentEvery1Minute
     alias: live
 
 functions:
@@ -54,7 +54,7 @@ functions:
     name: ${self:service}-${self:provider.stage}-delete
     description: Delete item from DynamoDB by ID
     deploymentSettings:
-      type: Canary10Percent2Minutes
+      type: Linear10PercentEvery1Minute
       alias: live
     events:
       # Note: ALB integration will be configured via Terraform
