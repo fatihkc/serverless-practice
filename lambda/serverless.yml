@@ -9,10 +9,10 @@ provider:
   stage: ${opt:stage, 'dev'}
   memorySize: 256
   timeout: 30
-  
+
   environment:
     DYNAMODB_TABLE_NAME: ${self:custom.dynamodbTableName}
-  
+
   iam:
     role:
       statements:
@@ -51,7 +51,7 @@ functions:
       - httpApi:
           path: /picus/{key}
           method: DELETE
-    
+
     # VPC configuration if needed (uncomment and configure)
     # vpc:
     #   securityGroupIds:
@@ -86,7 +86,7 @@ resources:
           - Arn
       Export:
         Name: ${self:service}-${self:provider.stage}-delete-function-arn
-    
+
     DeleteLambdaFunctionName:
       Description: Name of the DELETE Lambda function
       Value:

@@ -97,4 +97,3 @@ output "acm_certificate_status" {
   description = "Status of the ACM certificate"
   value       = aws_acm_certificate.main.status
 }
-

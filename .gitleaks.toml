@@ -1,0 +1,26 @@
+# Gitleaks configuration
+title = "Gitleaks config for serverless-practice"
+
+[extend]
+# Use the default gitleaks config as base
+useDefault = true
+
+[allowlist]
+description = "Allowlisted files and patterns"
+
+# Allow test files and mock data
+paths = [
+  '''test_.*\.py$''',
+  '''.*_test\.py$''',
+  '''tests/.*''',
+]
+
+# Allow example/dummy values
+regexes = [
+  '''example\.com''',
+  '''localhost''',
+  '''127\.0\.0\.1''',
+]
+
+# Allow specific commits (add commit SHAs here if needed)
+commits = []

@@ -103,3 +103,13 @@ logs/
 local.env
 .env.local
 
+# Security scanning
+.gitleaks-report.json
+trivy-results.sarif
+
+# Secrets and credentials
+secrets.yml
+secrets.json
+**/secret*
+**/credential*
+!.github/workflows/

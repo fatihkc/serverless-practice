@@ -186,4 +186,3 @@ resource "aws_appautoscaling_policy" "ecs_memory" {
     scale_out_cooldown = 60
   }
 }
-

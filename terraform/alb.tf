@@ -224,4 +224,3 @@ resource "aws_lb_listener_rule" "health" {
     Name = "${var.project_name}-health-rule"
   }
 }
-

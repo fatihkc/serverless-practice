@@ -21,4 +21,3 @@ resource "aws_dynamodb_table" "picus_data" {
     Environment = var.environment
   }
 }
-

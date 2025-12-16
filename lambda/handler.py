@@ -41,11 +41,11 @@ def delete_item(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try:
         # Extract key from path or pathParameters
         key = None
-        
+
         # Try to get from pathParameters (API Gateway style)
         if "pathParameters" in event and event["pathParameters"]:
             key = event["pathParameters"].get("key")
-        
+
         # If not found, try to extract from path
         if not key and "path" in event:
             path = event["path"]
@@ -53,7 +53,7 @@ def delete_item(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             parts = path.strip("/").split("/")
             if len(parts) >= 2:
                 key = parts[1]
-        
+
         # For ALB, the path might be in rawPath or path
         if not key and "rawPath" in event:
             path = event["rawPath"]
@@ -78,7 +78,7 @@ def delete_item(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         # Check if item exists before deleting
         response = table.get_item(Key={"id": key})
-        
+
         if "Item" not in response:
             logger.warning(f"Item not found with key: {key}")
             return {
@@ -94,7 +94,7 @@ def delete_item(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         # Delete the item
         table.delete_item(Key={"id": key})
-        
+
         logger.info(f"Successfully deleted item with key: {key}")
 
         return {
@@ -133,4 +133,3 @@ def delete_item(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "detail": "Internal server error"
             })
         }
-

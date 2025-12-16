@@ -90,4 +90,3 @@ variable "tags" {
     ManagedBy = "Terraform"
   }
 }
-

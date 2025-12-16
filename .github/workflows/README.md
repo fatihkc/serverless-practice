@@ -218,7 +218,7 @@ aws logs tail /aws/lambda/picus-dev-delete --follow
    # Test ECS changes
    docker build --platform linux/amd64 -t picus-app:latest .
    docker run -p 8000:8000 picus-app:latest
-   
+
    # Test Lambda changes
    cd lambda
    npx serverless invoke local --function delete --data '{"pathParameters": {"id": "test"}}'
@@ -239,7 +239,7 @@ aws logs tail /aws/lambda/picus-dev-delete --follow
    # Rollback ECS
    aws ecs update-service --cluster picus-cluster --service picus-service \
      --task-definition picus-app:PREVIOUS_REVISION
-   
+
    # Rollback Lambda
    cd lambda
    npx serverless rollback --timestamp TIMESTAMP
