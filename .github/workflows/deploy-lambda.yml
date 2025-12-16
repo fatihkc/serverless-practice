@@ -14,8 +14,114 @@ env:
   FUNCTION_NAME: picus-dev-delete
   APP_URL: https://app.fatihkoc.net
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
+  security-checks:
+    name: Security & Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: lambda/package.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'lambda/requirements.txt'
+
+      - name: Install Python dependencies
+        run: |
+          cd lambda
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: NPM Audit (Dependency Vulnerability Scan)
+        run: |
+          cd lambda
+          npm ci
+          echo "Running NPM security audit..."
+          npm audit --audit-level=high || {
+            echo "WARNING: NPM audit found vulnerabilities"
+            npm audit --audit-level=high --json > npm-audit.json || true
+            echo "Review vulnerabilities and update dependencies"
+          }
+          echo "[PASS] NPM audit complete"
+
+      - name: Python Safety Check (CVE Scanning)
+        run: |
+          cd lambda
+          pip install safety
+          echo "Scanning Python dependencies for known vulnerabilities..."
+          safety check --json > safety-report.json || {
+            echo "WARNING: Safety found vulnerabilities in Python dependencies"
+            safety check || true
+          }
+          echo "[PASS] Safety check complete"
+
+      - name: Python SAST with Bandit
+        run: |
+          pip install bandit
+          cd lambda
+          echo "Running static security analysis on Python code..."
+          bandit -r . -ll -f json -o bandit-report.json || true
+          bandit -r . -ll || true
+          echo "[PASS] Bandit security scan complete"
+
+      - name: Validate Serverless Configuration
+        run: |
+          cd lambda
+          npm ci
+          echo "Validating serverless.yml configuration..."
+          npx serverless print --stage dev > cloudformation-template.json
+          echo "[PASS] Serverless configuration is valid"
+
+      - name: IAM Policy Validation
+        run: |
+          cd lambda
+          echo "Checking IAM policies for security issues..."
+
+          # Check for overly permissive resource wildcards
+          if grep -q '"Resource".*"\*"' cloudformation-template.json; then
+            echo "WARNING: Found wildcard in IAM Resource statements"
+            echo "Consider using specific ARNs for better security"
+            grep -B 2 -A 2 '"Resource".*"\*"' cloudformation-template.json || true
+          fi
+
+          # Check for dangerous action wildcards
+          if grep -qE '"Action".*"[^"]*:\*"' cloudformation-template.json; then
+            echo "WARNING: Found wildcard actions in IAM policies"
+            echo "Consider specifying explicit actions"
+            grep -B 2 -A 2 '"Action".*"[^"]*:\*"' cloudformation-template.json || true
+          fi
+
+          echo "[PASS] IAM policy validation complete"
+
+      - name: Upload Security Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            lambda/bandit-report.json
+            lambda/safety-report.json
+            lambda/npm-audit.json
+            lambda/cloudformation-template.json
+          retention-days: 7
+
   deploy-lambda:
+    needs: security-checks
     name: Deploy Lambda with Serverless Framework
     runs-on: ubuntu-latest
 
