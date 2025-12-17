@@ -97,3 +97,8 @@ output "acm_certificate_status" {
   description = "Status of the ACM certificate"
   value       = aws_acm_certificate.main.status
 }
+
+output "cloudwatch_dashboard_url" {
+  description = "URL to CloudWatch Dashboard"
+  value       = "https://console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards:name=${aws_cloudwatch_dashboard.sre_dashboard.dashboard_name}"
+}

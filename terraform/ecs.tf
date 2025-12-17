@@ -132,6 +132,12 @@ resource "aws_ecs_service" "app" {
 
   health_check_grace_period_seconds = 60
 
+  # Ignore task definition changes since GitHub Actions CI/CD manages deployments
+  # This prevents Terraform from reverting to an older task definition version
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
   tags = {
     Name = "${var.project_name}-ecs-service"
   }

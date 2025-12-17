@@ -7,6 +7,7 @@ A serverless hybrid application demonstrating modern cloud architecture with Fla
 - [Architecture](#architecture)
 - [Features](#features)
 - [Quick Start](#quick-start)
+- [SRE Observability](#sre-observability)
 - [Project Structure](#project-structure)
 - [CI/CD Pipeline](#cicd-pipeline)
 - [Security](#security)
@@ -53,6 +54,7 @@ A serverless hybrid application demonstrating modern cloud architecture with Fla
 
 ## Features
 
+- **SRE Observability**: CloudWatch dashboard with Four Golden Signals (Latency, Traffic, Errors, Saturation)
 - **Hybrid Architecture**: ECS Fargate + AWS Lambda with ALB routing
 - **Zero-Downtime Deployment**: Rolling updates with health checks and circuit breaker
 - **HTTPS by Default**: ACM certificate with TLS 1.3 and automatic HTTP redirect
@@ -170,6 +172,82 @@ curl -X DELETE https://app.fatihkoc.net/picus/$ITEM_ID | jq
 # Test HTTP to HTTPS redirect
 curl -I http://app.fatihkoc.net/health
 # Should return: HTTP/1.1 301 Moved Permanently
+```
+
+## SRE Observability
+
+### CloudWatch Dashboard - Four Golden Signals
+
+The project implements comprehensive SRE monitoring based on Google's [Four Golden Signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals):
+
+**Access Dashboard:**
+```bash
+terraform output cloudwatch_dashboard_url
+# Or visit: AWS Console → CloudWatch → Dashboards → picus-sre-dashboard
+```
+
+#### 1. Latency 🚀
+- **API Latency**: p50, p95, p99 percentiles from ALB
+- **Lambda Duration**: p50, p95, p99 execution times
+- **DynamoDB Latency**: Operation-specific response times (GetItem, PutItem, DeleteItem)
+- **SLO Target**: 95% of requests complete within 500ms
+
+#### 2. Traffic 📊
+- **Request Rate**: Requests per minute to ALB
+- **Lambda Invocations**: DELETE endpoint invocation rate
+- **Concurrent Executions**: Real-time Lambda concurrency
+- **DynamoDB Operations**: Read/write operation counts by type
+
+#### 3. Errors ❌
+- **5xx Error Rate**: Server-side errors from ECS tasks
+- **4xx Error Rate**: Client errors (bad requests)
+- **Success Rate SLI**: Real-time success percentage (99.9% target)
+- **Lambda Errors**: Errors, throttles, and DLQ failures
+- **DynamoDB Errors**: Throttling (UserErrors) and system errors
+
+#### 4. Saturation 💻
+- **ECS CPU Utilization**: Container CPU usage with auto-scaling thresholds
+- **ECS Memory Utilization**: Container memory usage
+- **Running Tasks**: Current task count vs. desired count
+- **ALB Target Health**: Healthy vs. unhealthy host count
+- **Active Connections**: ALB connection pool saturation
+- **DynamoDB Capacity**: Read/write capacity consumption
+
+### Key Metrics for On-Call
+
+| Metric | Normal | Warning | Critical |
+|--------|--------|---------|----------|
+| API p99 Latency | < 500ms | 500-1000ms | > 1000ms |
+| Success Rate | > 99.9% | 99.0-99.9% | < 99.0% |
+| ECS CPU | < 70% | 70-90% | > 90% |
+| Lambda Errors | 0 | 1-5/min | > 5/min |
+| DynamoDB Throttles | 0 | 1-10/min | > 10/min |
+
+### Observability Stack
+
+```
+┌─────────────────────────────────────────────────────┐
+│             CloudWatch Dashboard                     │
+│  (Real-time visualization of Golden Signals)        │
+└─────────────────────────────────────────────────────┘
+                        ▲
+                        │
+        ┌───────────────┼───────────────┐
+        │               │               │
+┌───────▼──────┐ ┌──────▼─────┐ ┌──────▼─────┐
+│ ALB Metrics  │ │ ECS Metrics│ │Lambda Logs │
+│ (Latency,    │ │ (CPU, Mem, │ │(Errors,    │
+│  Traffic,    │ │  Tasks)    │ │ Duration)  │
+│  Errors)     │ │            │ │            │
+└──────────────┘ └────────────┘ └────────────┘
+        │               │               │
+        └───────────────┼───────────────┘
+                        │
+                ┌───────▼────────┐
+                │ DynamoDB       │
+                │ (Throttles,    │
+                │  Latency)      │
+                └────────────────┘
 ```
 
 ### Zero-Downtime Deployment
