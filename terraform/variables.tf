@@ -82,6 +82,7 @@ variable "app_subdomain" {
   default     = "app.fatihkoc.net"
 }
 
+
 variable "tags" {
   description = "Common tags for all resources"
   type        = map(string)

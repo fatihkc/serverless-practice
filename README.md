@@ -54,11 +54,11 @@ A serverless hybrid application demonstrating modern cloud architecture with Fla
 
 ## Features
 
-- **SRE Observability**: CloudWatch dashboard with Four Golden Signals (Latency, Traffic, Errors, Saturation)
+- **SRE Observability**: CloudWatch dashboard with Four Golden Signals + 4 critical alarms with email notifications
 - **Hybrid Architecture**: ECS Fargate + AWS Lambda with ALB routing
 - **Zero-Downtime Deployment**: Rolling updates with health checks and circuit breaker
 - **HTTPS by Default**: ACM certificate with TLS 1.3 and automatic HTTP redirect
-- **Infrastructure as Code**: Complete Terraform setup (45+ resources)
+- **Infrastructure as Code**: Complete Terraform setup (50+ resources)
 - **CI/CD Automation**: Separate GitHub Actions pipelines for ECS and Lambda
 - **Security Hardened**: Least privilege IAM, encryption at rest, private subnets
 
@@ -249,6 +249,21 @@ terraform output cloudwatch_dashboard_url
                 │  Latency)      │
                 └────────────────┘
 ```
+
+### CloudWatch Alarms - Critical Alerting
+
+**4 critical alarms** with email notifications to `mail@fatihkoc.net`:
+
+| Alarm | Threshold | Why Critical |
+|-------|-----------|--------------|
+| **API High Error Rate** | >10 5xx errors/min | Service is failing for users |
+| **Unhealthy Targets** | Any unhealthy ECS task | Zero availability risk |
+| **Lambda Errors** | >5 errors/min | DELETE endpoint degraded |
+| **DynamoDB Throttling** | >10 throttle events/min | Data layer capacity exceeded |
+
+**Response Time:** All alarms require **immediate attention** (< 15 minutes)
+
+**After `terraform apply`:** Check `mail@fatihkoc.net` and **confirm SNS subscription** to receive alerts.
 
 ### Zero-Downtime Deployment
 

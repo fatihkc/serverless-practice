@@ -102,3 +102,13 @@ output "cloudwatch_dashboard_url" {
   description = "URL to CloudWatch Dashboard"
   value       = "https://console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#dashboards:name=${aws_cloudwatch_dashboard.sre_dashboard.dashboard_name}"
 }
+
+output "sns_alerts_topic_arn" {
+  description = "ARN of SNS topic for CloudWatch alarms"
+  value       = aws_sns_topic.alerts.arn
+}
+
+output "cloudwatch_alarms_count" {
+  description = "Total number of CloudWatch alarms configured"
+  value       = 4
+}
